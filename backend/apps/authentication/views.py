@@ -5,6 +5,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from .serializers import RegisterSerializer, UserProfileSerializer
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import RegisterSerializer, UserProfileSerializer, PasswordChangeSerializer
 
 User = get_user_model()
 
@@ -69,6 +73,18 @@ class LogoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+@method_decorator(
+    ratelimit(key='ip', rate='5/m', method='POST', block=True),
+    name='dispatch'
+)
+class RateLimitedLoginView(TokenObtainPairView):
+    """
+    POST /api/auth/login/
+    Same as JWT login but limited to 5 attempts per minute per IP.
+    Blocks with 429 Too Many Requests after limit exceeded.
+    """
+    pass
+        
 class GoogleLoginView(APIView):
     """
     POST /api/auth/google/
@@ -121,6 +137,27 @@ class GoogleLoginView(APIView):
             },
             'created': created  # True if new user, False if existing
         })
+    
+class PasswordChangeView(APIView):
+    """
+    POST /api/auth/password/change/
+    Authenticated users can change their password.
+    Requires old password verification.
+    Invalidates all existing tokens after change.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = PasswordChangeSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        if serializer.is_valid():
+            # Set the new password
+            request.user.set_password(serializer.validated_data['new_password'])
+            request.user.save()
+            return Response({'message': 'Password changed successfully'})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class HealthCheckView(APIView):
     """

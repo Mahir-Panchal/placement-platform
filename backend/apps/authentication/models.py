@@ -24,13 +24,16 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    """
-    Our custom user model. Uses email instead of username.
-    id is a UUID (not an integer) — harder to guess, better for APIs.
-    """
+    
+    ROLE_CHOICES = [
+        ('STUDENT', 'Student'),
+        ('ADMIN', 'Admin'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=100)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='STUDENT')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -38,7 +41,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    # Tell Django to use email as the login field
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['full_name']
 

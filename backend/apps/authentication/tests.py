@@ -131,3 +131,61 @@ def test_health_check(client):
 
     assert response.status_code == 200
     assert response.data['status'] == 'ok'
+
+# ── Test 7: Password Change Success ─────────────────────────────────────────
+
+@pytest.mark.django_db
+def test_password_change_success(auth_client):
+    """Authenticated user can change password with correct old password."""
+    client, user = auth_client
+    url = reverse('password_change')
+    response = client.post(url, {
+        'old_password': 'Test@1234',
+        'new_password': 'NewPass@5678'
+    }, format='json')
+
+    assert response.status_code == 200
+    assert response.data['message'] == 'Password changed successfully'
+
+    # Verify new password actually works
+    user.refresh_from_db()
+    assert user.check_password('NewPass@5678')
+
+
+# ── Test 8: Password Change Wrong Old Password ───────────────────────────────
+
+@pytest.mark.django_db
+def test_password_change_wrong_old_password(auth_client):
+    """Password change should fail if old password is incorrect."""
+    client, user = auth_client
+    url = reverse('password_change')
+    response = client.post(url, {
+        'old_password': 'WrongPassword!',
+        'new_password': 'NewPass@5678'
+    }, format='json')
+
+    assert response.status_code == 400
+
+
+# ── Test 9: Password Change Same Password ────────────────────────────────────
+
+@pytest.mark.django_db
+def test_password_change_same_password(auth_client):
+    """Password change should fail if new password is same as old."""
+    client, user = auth_client
+    url = reverse('password_change')
+    response = client.post(url, {
+        'old_password': 'Test@1234',
+        'new_password': 'Test@1234'
+    }, format='json')
+
+    assert response.status_code == 400
+
+
+# ── Test 10: Role Default Is Student ─────────────────────────────────────────
+
+@pytest.mark.django_db
+def test_new_user_default_role_is_student(create_user):
+    """Newly created users should have STUDENT role by default."""
+    user = create_user()
+    assert user.role == 'STUDENT'
