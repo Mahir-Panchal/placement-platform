@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: placement_postgres
+    environment:
+      POSTGRES_DB: placement_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432" # 5433 on host to avoid conflict with your local postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis cache and message broker
+  redis:
+    image: redis:7-alpine
+    container_name: placement_redis
+    ports:
+      - "6380:6379" # 6380 on host to avoid conflict with local redis
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Django backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: placement_backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-docker-dev-secret-key-abc123
+      - DB_PASSWORD=postgres123
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
