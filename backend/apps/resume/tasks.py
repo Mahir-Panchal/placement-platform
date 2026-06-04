@@ -1,12 +1,17 @@
+from celery import shared_task
 from .models import Resume
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def process_resume_inline(resume_id):
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def process_resume(self, resume_id: str):
     """
-    Processes a resume synchronously:
+    Celery task that processes a resume asynchronously.
+    Retries up to 3 times if it fails, waiting 60 seconds between retries.
+
+    Steps:
     1. Extract text from PDF
     2. Extract skills
     3. Calculate ATS score
@@ -46,9 +51,25 @@ def process_resume_inline(resume_id):
         resume.save()
         logger.info(f"Resume {resume_id} processing complete")
 
-    except Exception as e:
-        logger.error(f"Resume processing failed for {resume_id}: {e}")
+        return {
+            'resume_id': resume_id,
+            'ats_score': score,
+            'skills_count': len(skills),
+            'status': 'DONE'
+        }
+
+    except Exception as exc:
+        logger.error(f"Resume processing failed for {resume_id}: {exc}")
         if resume:
             resume.status = 'FAILED'
             resume.save(update_fields=['status'])
-        raise e
+        # Retry the task
+        raise self.retry(exc=exc, countdown=60)
+
+
+def process_resume_inline(resume_id):
+    """
+    Kept for backward compatibility.
+    Now just calls the Celery task synchronously for testing.
+    """
+    process_resume.apply(args=[str(resume_id)])

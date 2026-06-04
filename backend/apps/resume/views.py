@@ -11,7 +11,8 @@ from .serializers import ResumeUploadSerializer, ResumeSerializer, ResumeStatusS
 class ResumeUploadView(APIView):
     """
     POST /api/resume/upload/
-    Accepts a PDF file, saves it, and triggers async processing.
+    Accepts a PDF file, saves it, and triggers async Celery processing.
+    Returns immediately — client polls /status/ for completion.
     """
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -24,10 +25,10 @@ class ResumeUploadView(APIView):
                 original_filename=request.data['file'].name,
                 status='PENDING'
             )
-            # TODO: trigger async processing in Day 10
-            # For now we'll process inline
-            from .tasks import process_resume_inline
-            process_resume_inline(resume.id)
+
+            # Trigger async Celery task — returns immediately
+            from .tasks import process_resume
+            process_resume.delay(str(resume.id))
 
             return Response(
                 ResumeSerializer(resume).data,
