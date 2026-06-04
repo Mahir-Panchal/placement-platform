@@ -61,21 +61,22 @@ export default function DashboardPage() {
                 {/* Placeholder cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
-                        { title: 'Resume Score', value: '--', desc: 'Upload your resume' },
-                        { title: 'Applications', value: '0', desc: 'Track your applications' },
-                        { title: 'Roadmap', value: '--', desc: 'Generate your roadmap' },
+                        { title: 'Resume Score', value: '--', desc: 'Upload your resume', href: '/dashboard/resume' },
+                        { title: 'Applications', value: '0', desc: 'Track your applications', href: '/dashboard/applications' },
+                        { title: 'Roadmap', value: '--', desc: 'Generate your roadmap', href: '/dashboard/roadmap' },
                     ].map((card) => (
-                        <div
+                        <a
                             key={card.title}
-                            className="bg-gray-900 border border-gray-800 rounded-2xl p-6"
+                            href={card.href}
+                            className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-violet-500/50 transition"
                         >
                             <p className="text-gray-400 text-sm">{card.title}</p>
                             <p className="text-4xl font-bold text-white mt-2">{card.value}</p>
                             <p className="text-gray-500 text-sm mt-1">{card.desc}</p>
-                        </div>
+                        </a>
                     ))}
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }

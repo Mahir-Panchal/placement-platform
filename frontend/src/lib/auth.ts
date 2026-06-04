@@ -80,3 +80,65 @@ export const getMe = async (): Promise<User> => {
     const response = await api.get('/api/auth/me/');
     return response.data;
 };
+
+// ── Resume API functions ──────────────────────────────────────────────────
+
+export interface Resume {
+    id: string;
+    original_filename: string;
+    ats_score: number;
+    skills: string[];
+    ai_suggestions: AISuggestions;
+    status: 'PENDING' | 'PROCESSING' | 'DONE' | 'FAILED';
+    is_active: boolean;
+    created_at: string;
+}
+
+export interface AISuggestions {
+    summary_feedback: string;
+    ats_analysis: string;
+    missing_skills: string[];
+    improvements: { section: string; issue: string; fix: string }[];
+    action_items: string[];
+    strengths: string[];
+    error?: string;
+}
+
+export interface ResumeStatus {
+    id: string;
+    status: string;
+    ats_score: number;
+}
+
+// Upload a resume PDF
+export const uploadResume = async (file: File): Promise<Resume> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/api/resume/upload/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+};
+
+// Get all resumes
+export const getResumes = async (): Promise<Resume[]> => {
+    const response = await api.get('/api/resume/');
+    return response.data.results || response.data;
+};
+
+// Get resume status
+export const getResumeStatus = async (id: string): Promise<ResumeStatus> => {
+    const response = await api.get(`/api/resume/${id}/status/`);
+    return response.data;
+};
+
+// Get resume suggestions
+export const getResumeSuggestions = async (id: string) => {
+    const response = await api.get(`/api/resume/${id}/suggestions/`);
+    return response.data;
+};
+
+// Delete resume
+export const deleteResume = async (id: string): Promise<void> => {
+    await api.delete(`/api/resume/${id}/delete/`);
+};
