@@ -5,6 +5,7 @@ from .views import (
     ResumeDetailView,
     ResumeStatusView,
     ResumeDeleteView,
+    ResumeSuggestionsView,
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path('<uuid:pk>/', ResumeDetailView.as_view(), name='resume_detail'),
     path('<uuid:pk>/status/', ResumeStatusView.as_view(), name='resume_status'),
     path('<uuid:pk>/delete/', ResumeDeleteView.as_view(), name='resume_delete'),
+    path('<uuid:pk>/suggestions/', ResumeSuggestionsView.as_view(), name='resume_suggestions'),
 ]

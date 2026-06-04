@@ -74,6 +74,29 @@ class ResumeStatusView(APIView):
     def get(self, request, pk):
         resume = get_object_or_404(Resume, id=pk, user=request.user)
         return Response(ResumeStatusSerializer(resume).data)
+    
+class ResumeSuggestionsView(APIView):
+    """
+    GET /api/resume/{id}/suggestions/
+    Returns AI-generated improvement suggestions for the resume.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        resume = get_object_or_404(Resume, id=pk, user=request.user)
+
+        if resume.status != 'DONE':
+            return Response(
+                {'error': f'Resume is still {resume.status}. Please wait.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response({
+            'resume_id': str(resume.id),
+            'ats_score': resume.ats_score,
+            'skills': resume.skills,
+            'suggestions': resume.ai_suggestions,
+        })
 
 
 class ResumeDeleteView(generics.DestroyAPIView):
