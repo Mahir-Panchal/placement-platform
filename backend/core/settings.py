@@ -39,6 +39,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'apps.authentication',
+    'apps.resume',
     # We'll add our apps here as we build them
 ]
 
@@ -164,3 +165,7 @@ else:
             'LOCATION': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
         }
     }
+
+# Media files (uploaded resumes etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

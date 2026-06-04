@@ -1,0 +1,16 @@
+from django.urls import path
+from .views import (
+    ResumeUploadView,
+    ResumeListView,
+    ResumeDetailView,
+    ResumeStatusView,
+    ResumeDeleteView,
+)
+
+urlpatterns = [
+    path('upload/', ResumeUploadView.as_view(), name='resume_upload'),
+    path('', ResumeListView.as_view(), name='resume_list'),
+    path('<uuid:pk>/', ResumeDetailView.as_view(), name='resume_detail'),
+    path('<uuid:pk>/status/', ResumeStatusView.as_view(), name='resume_status'),
+    path('<uuid:pk>/delete/', ResumeDeleteView.as_view(), name='resume_delete'),
+]
