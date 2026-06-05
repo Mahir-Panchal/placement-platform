@@ -142,3 +142,58 @@ export const getResumeSuggestions = async (id: string) => {
 export const deleteResume = async (id: string): Promise<void> => {
     await api.delete(`/api/resume/${id}/delete/`);
 };
+
+// ── Roadmap API functions ─────────────────────────────────────────────────
+
+export interface RoadmapWeek {
+    week: number;
+    theme: string;
+    focus: string;
+    daily_tasks: string[];
+    resources: string[];
+    goal: string;
+    skills_covered: string[];
+}
+
+export interface RoadmapContent {
+    target_role: string;
+    summary: string;
+    weeks: RoadmapWeek[];
+    key_topics: string[];
+    interview_tips: string[];
+    error?: string;
+}
+
+export interface Roadmap {
+    id: string;
+    target_role: string;
+    content: RoadmapContent;
+    status: 'PENDING' | 'PROCESSING' | 'DONE' | 'FAILED';
+    created_at: string;
+}
+
+export const generateRoadmap = async (
+    target_role: string,
+    resume_id?: string
+): Promise<Roadmap> => {
+    const response = await api.post('/api/roadmap/generate/', {
+        target_role,
+        resume_id: resume_id || null,
+    });
+    return response.data;
+};
+
+export const getRoadmap = async (): Promise<Roadmap | null> => {
+    const response = await api.get('/api/roadmap/');
+    return response.data.roadmap || response.data;
+};
+
+export const getRoadmapById = async (id: string): Promise<Roadmap> => {
+    const response = await api.get(`/api/roadmap/${id}/`);
+    return response.data;
+};
+
+export const getRoadmapStatus = async (id: string) => {
+    const response = await api.get(`/api/roadmap/${id}/status/`);
+    return response.data;
+};

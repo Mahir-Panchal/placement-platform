@@ -3,19 +3,23 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getMe, getResumes, logout, type User, type Resume } from '@/lib/auth';
+import { getMe, getResumes, getRoadmap, logout, type User, type Resume } from '@/lib/auth';
 
 export default function DashboardPage() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [resumes, setResumes] = useState<Resume[]>([]);
     const [loading, setLoading] = useState(true);
+    const [latestRoadmap, setLatestRoadmap] = useState<any>(null);
 
     useEffect(() => {
-        Promise.all([getMe(), getResumes()])
-            .then(([userData, resumeData]) => {
+        Promise.all([getMe(), getResumes(), getRoadmap()])
+            .then(([userData, resumeData, roadmapData]) => {
                 setUser(userData);
                 setResumes(resumeData);
+                if (roadmapData && (roadmapData as any).id) {
+                    setLatestRoadmap(roadmapData);
+                }
             })
             .catch(() => router.push('/login'))
             .finally(() => setLoading(false));
@@ -123,9 +127,15 @@ export default function DashboardPage() {
                             <p className="text-gray-400 text-sm">Roadmap</p>
                             <span className="text-2xl">🗺️</span>
                         </div>
-                        <p className="text-4xl font-bold text-white">--</p>
-                        <p className="text-gray-500 text-sm mt-1">Generate your roadmap</p>
-                        <p className="text-violet-400 text-xs mt-3 group-hover:underline">Generate now →</p>
+                        <p className="text-4xl font-bold text-white">
+                            {latestRoadmap ? '8' : '--'}
+                        </p>
+                        <p className="text-gray-500 text-sm mt-1">
+                            {latestRoadmap ? `Weeks for ${latestRoadmap.target_role}` : 'Generate your roadmap'}
+                        </p>
+                        <p className="text-violet-400 text-xs mt-3 group-hover:underline">
+                            {latestRoadmap ? 'View roadmap →' : 'Generate now →'}
+                        </p>
                     </Link>
                 </div>
 
