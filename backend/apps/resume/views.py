@@ -98,12 +98,42 @@ class ResumeSuggestionsView(APIView):
             'skills': resume.skills,
             'suggestions': resume.ai_suggestions,
         })
+    
+class ResumeReanalyseView(APIView):
+    """
+    POST /api/resume/{id}/reanalyse/
+    Re-triggers the Celery processing task on an existing resume.
+    Useful when user wants fresh AI suggestions.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        resume = get_object_or_404(Resume, id=pk, user=request.user)
+
+        if resume.status == 'PROCESSING':
+            return Response(
+                {'error': 'Resume is already being processed'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Reset status and trigger task again
+        resume.status = 'PENDING'
+        resume.save(update_fields=['status'])
+
+        from .tasks import process_resume
+        process_resume.delay(str(resume.id))
+
+        return Response({
+            'message': 'Reanalysis started',
+            'resume_id': str(resume.id),
+            'status': 'PENDING'
+        })
 
 
 class ResumeDeleteView(generics.DestroyAPIView):
     """
-    DELETE /api/resume/{id}/
-    Deletes the resume file and record.
+    DELETE /api/resume/{id}/delete/
+    Deletes the resume record AND the file from disk.
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -113,3 +143,11 @@ class ResumeDeleteView(generics.DestroyAPIView):
             id=self.kwargs['pk'],
             user=self.request.user
         )
+
+    def perform_destroy(self, instance):
+        # Delete file from disk first
+        import os
+        if instance.file and os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
+        # Then delete the database record
+        instance.delete()
