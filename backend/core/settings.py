@@ -41,6 +41,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'apps.authentication',
     'apps.resume',
+    'apps.roadmap',
     # We'll add our apps here as we build them
 ]
 
