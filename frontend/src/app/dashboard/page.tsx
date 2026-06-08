@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getMe, getResumes, getRoadmap, logout, type User, type Resume } from '@/lib/auth';
+import api from '@/lib/api';
+
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -11,19 +13,41 @@ export default function DashboardPage() {
     const [resumes, setResumes] = useState<Resume[]>([]);
     const [loading, setLoading] = useState(true);
     const [latestRoadmap, setLatestRoadmap] = useState<any>(null);
+    const [appStats, setAppStats] = useState<any>(null);
 
     useEffect(() => {
-        Promise.all([getMe(), getResumes(), getRoadmap()])
-            .then(([userData, resumeData, roadmapData]) => {
+        const fetchData = async () => {
+            try {
+                const [userData, resumeData] = await Promise.all([
+                    getMe(),
+                    getResumes(),
+                ]);
                 setUser(userData);
                 setResumes(resumeData);
-                if (roadmapData && (roadmapData as any).id) {
-                    setLatestRoadmap(roadmapData);
-                }
-            })
-            .catch(() => router.push('/login'))
-            .finally(() => setLoading(false));
-    }, [router]);
+
+                // Fetch roadmap separately
+                try {
+                    const roadmapData = await getRoadmap();
+                    if (roadmapData && (roadmapData as any).id) {
+                        setLatestRoadmap(roadmapData);
+                    }
+                } catch { }
+
+                // Fetch stats separately
+                try {
+                    const statsRes = await api.get('/api/tracker/stats/');
+                    if (statsRes.data) setAppStats(statsRes.data);
+                } catch { }
+
+            } catch {
+                router.push('/login');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleLogout = async () => {
         await logout();
@@ -116,9 +140,15 @@ export default function DashboardPage() {
                             <p className="text-gray-400 text-sm">Applications</p>
                             <span className="text-2xl">🎯</span>
                         </div>
-                        <p className="text-4xl font-bold text-white">0</p>
-                        <p className="text-gray-500 text-sm mt-1">Track your applications</p>
-                        <p className="text-violet-400 text-xs mt-3 group-hover:underline">Add application →</p>
+                        <p className="text-4xl font-bold text-white">{appStats?.total || 0}</p>
+                        <p className="text-gray-500 text-sm mt-1">
+                            {appStats?.by_status?.offer > 0
+                                ? `${appStats.by_status.offer} offer(s) received 🎉`
+                                : 'Track your applications'}
+                        </p>
+                        <p className="text-violet-400 text-xs mt-3 group-hover:underline">
+                            {appStats?.total > 0 ? 'View all →' : 'Add application →'}
+                        </p>
                     </Link>
 
                     <Link href="/dashboard/roadmap"

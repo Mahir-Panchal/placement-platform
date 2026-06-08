@@ -184,8 +184,15 @@ export const generateRoadmap = async (
 };
 
 export const getRoadmap = async (): Promise<Roadmap | null> => {
-    const response = await api.get('/api/roadmap/');
-    return response.data.roadmap || response.data;
+    try {
+        const response = await api.get('/api/roadmap/');
+        const data = response.data;
+        if (data && data.id) return data;
+        if (data && data.roadmap && data.roadmap.id) return data.roadmap;
+        return null;
+    } catch {
+        return null;
+    }
 };
 
 export const getRoadmapById = async (id: string): Promise<Roadmap> => {
