@@ -10,5 +10,6 @@ urlpatterns = [
     path('api/resume/', include('apps.resume.urls')),
     path('api/roadmap/', include('apps.roadmap.urls')),
     path('api/rag/', include('apps.rag.urls')),
+    path('api/tracker/', include('apps.tracker.urls')),
     path('api/health/', HealthCheckView.as_view(), name='health'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

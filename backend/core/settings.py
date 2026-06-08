@@ -43,6 +43,7 @@ LOCAL_APPS = [
     'apps.resume',
     'apps.roadmap',
     'apps.rag',
+    'apps.tracker',
     # We'll add our apps here as we build them
 ]
 
