@@ -57,9 +57,7 @@ services:
 
   # Celery worker for async tasks
   celery_worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: placement-platform-backend # reuse backend image
     container_name: placement_celery
     command: celery -A core worker --loglevel=info
     volumes:
