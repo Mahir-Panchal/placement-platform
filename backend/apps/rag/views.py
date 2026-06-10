@@ -75,10 +75,6 @@ class DocumentDeleteView(APIView):
 
 
 class DocumentQueryView(APIView):
-    """
-    POST /api/rag/query/
-    Answers a question using RAG over the specified document.
-    """
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -89,11 +85,17 @@ class DocumentQueryView(APIView):
         doc_id = serializer.validated_data['document_id']
         question = serializer.validated_data['question']
 
-        doc = get_object_or_404(
-            KnowledgeDocument,
-            id=doc_id,
-            user=request.user
-        )
+        try:
+            doc = get_object_or_404(
+                KnowledgeDocument,
+                id=doc_id,
+                user=request.user
+            )
+        except Exception:
+            return Response(
+                {'error': 'Document not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         if doc.status != 'READY':
             return Response(
@@ -111,8 +113,8 @@ class DocumentQueryView(APIView):
                 'answer': result.get('answer', ''),
                 'document': doc.title,
                 'sources': [
-                    doc.page_content[:200]
-                    for doc in result.get('context', [])
+                    d.page_content[:200]
+                    for d in result.get('context', [])
                 ]
             })
         except Exception as e:
