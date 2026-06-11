@@ -36,6 +36,7 @@ THIRD_PARTY_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'django_celery_results',
+    'django_celery_beat',
 ]
 
 LOCAL_APPS = [
@@ -44,6 +45,7 @@ LOCAL_APPS = [
     'apps.roadmap',
     'apps.rag',
     'apps.tracker',
+    'apps.notifications',
     # We'll add our apps here as we build them
 ]
 
@@ -195,3 +197,26 @@ if 'pytest' in sys.modules:
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
     RATELIMIT_ENABLE = False
+
+# ── Email Configuration ───────────────────────────────────────────────────
+EMAIL_BACKEND       = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST          = 'smtp.gmail.com'
+EMAIL_PORT          = 587
+EMAIL_USE_TLS       = True
+EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL  = os.environ.get('EMAIL_HOST_USER', 'noreply@placement.com')
+
+# ── Celery Beat Schedule ──────────────────────────────────────────────────
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'weekly-placement-summary': {
+        'task':     'apps.notifications.tasks.send_weekly_summary_to_all',
+        'schedule': crontab(hour=9, minute=0, day_of_week=1),
+    },
+    'stale-application-reminder': {
+        'task':     'apps.notifications.tasks.send_stale_application_reminders',
+        'schedule': crontab(hour=10, minute=0, day_of_week=1),
+    },
+}
