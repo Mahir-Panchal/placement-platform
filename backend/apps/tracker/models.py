@@ -27,6 +27,11 @@ class JobApplication(models.Model):
 
     class Meta:
         ordering = ['-applied_date']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['user', 'applied_date']),
+            models.Index(fields=['user', '-updated_at']),
+        ]
 
     def __str__(self):
         return f"{self.user.email} - {self.company_name} - {self.role}"
