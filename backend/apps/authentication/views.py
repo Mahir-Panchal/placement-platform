@@ -173,3 +173,19 @@ class HealthCheckView(APIView):
             'timestamp': timezone.now(),
             'version': '1.0.0'
         })
+    
+class AccountDeleteView(APIView):
+    """
+    DELETE /api/auth/me/delete/
+    Soft deletes the account by setting is_active=False.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.is_active = False
+        user.save()
+        return Response(
+            {'message': 'Account deactivated successfully'},
+            status=status.HTTP_200_OK
+        )
