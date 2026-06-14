@@ -161,11 +161,11 @@ export default function SettingsPage() {
                 </p>
             </div>
 
-            <div className="flex gap-6">
+            <div className="flex flex-col lg:flex-row gap-6">
 
                 {/* ── Settings Sidebar ─────────────────────────────────────── */}
-                <aside className="w-48 shrink-0">
-                    <nav className="space-y-1">
+                <aside className="w-full lg:w-48 lg:shrink-0">
+                    <nav className="flex lg:flex-col gap-1 overflow-x-auto pb-1">
                         {SIDEBAR_ITEMS.map(item => (
                             <button
                                 key={item.key}

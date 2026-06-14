@@ -181,19 +181,19 @@ export default function ApplicationsPage() {
                                     <p className="text-gray-600 text-xs mt-0.5">{app.applied_date}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <span className={`text-xs px-2.5 py-1 rounded-full border ${STATUS_CONFIG[app.status]?.color}`}>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <span className={`text-xs px-2 py-0.5 rounded-full border ${STATUS_CONFIG[app.status]?.color}`}>
                                     {STATUS_CONFIG[app.status]?.label}
                                 </span>
                                 <button
                                     onClick={() => handleEdit(app)}
-                                    className="text-gray-400 hover:text-white text-sm transition"
+                                    className="text-gray-400 hover:text-white text-xs transition"
                                 >
                                     Edit
                                 </button>
                                 <button
                                     onClick={() => setDeleteId(app.id)}
-                                    className="text-red-400 hover:text-red-300 text-sm transition"
+                                    className="text-red-400 hover:text-red-300 text-xs transition"
                                 >
                                     Delete
                                 </button>
