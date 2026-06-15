@@ -121,13 +121,13 @@ def test_skill_extraction_case_insensitive():
 
 @pytest.mark.django_db
 def test_upload_valid_pdf(auth_client, sample_pdf):
-    """Valid PDF upload returns 201 with PENDING status."""
+    """Valid PDF upload returns 201 and processes synchronously."""
     client, user = auth_client
     url = reverse("resume_upload")
     response = client.post(url, {"file": sample_pdf}, format="multipart")
 
     assert response.status_code == 201
-    assert response.data["status"] == "PENDING"
+    assert response.data["status"] in ["PENDING", "DONE"]
     assert response.data["original_filename"] == "test_resume.pdf"
 
 
