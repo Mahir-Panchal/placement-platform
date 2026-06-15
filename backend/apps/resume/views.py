@@ -15,8 +15,8 @@ from .serializers import (
 class ResumeUploadView(APIView):
     """
     POST /api/resume/upload/
-    Accepts a PDF file, saves it, and triggers async Celery processing.
-    Returns immediately — client polls /status/ for completion.
+    Accepts a PDF file, saves it, and processes it synchronously.
+    Returns after processing is complete.
     """
 
     permission_classes = [permissions.IsAuthenticated]
@@ -31,10 +31,13 @@ class ResumeUploadView(APIView):
                 status="PENDING",
             )
 
-            # Trigger async Celery task — returns immediately
+            # Run synchronously — no Celery worker needed
             from .tasks import process_resume
 
-            process_resume.delay(str(resume.id))
+            process_resume.apply(args=[str(resume.id)])
+
+            # Refresh from DB to get updated scores and status
+            resume.refresh_from_db()
 
             return Response(
                 ResumeSerializer(resume).data, status=status.HTTP_201_CREATED
@@ -111,8 +114,7 @@ class ResumeSuggestionsView(APIView):
 class ResumeReanalyseView(APIView):
     """
     POST /api/resume/{id}/reanalyse/
-    Re-triggers the Celery processing task on an existing resume.
-    Useful when user wants fresh AI suggestions.
+    Re-triggers processing on an existing resume synchronously.
     """
 
     permission_classes = [permissions.IsAuthenticated]
@@ -126,19 +128,19 @@ class ResumeReanalyseView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Reset status and trigger task again
         resume.status = "PENDING"
         resume.save(update_fields=["status"])
 
         from .tasks import process_resume
 
-        process_resume.delay(str(resume.id))
+        process_resume.apply(args=[str(resume.id)])
+        resume.refresh_from_db()
 
         return Response(
             {
-                "message": "Reanalysis started",
+                "message": "Reanalysis complete",
                 "resume_id": str(resume.id),
-                "status": "PENDING",
+                "status": resume.status,
             }
         )
 
@@ -155,10 +157,8 @@ class ResumeDeleteView(generics.DestroyAPIView):
         return get_object_or_404(Resume, id=self.kwargs["pk"], user=self.request.user)
 
     def perform_destroy(self, instance):
-        # Delete file from disk first
         import os
 
         if instance.file and os.path.isfile(instance.file.path):
             os.remove(instance.file.path)
-        # Then delete the database record
         instance.delete()
