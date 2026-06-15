@@ -10,8 +10,7 @@ from .serializers import RoadmapGenerateSerializer, RoadmapSerializer
 class GenerateRoadmapView(APIView):
     """
     POST /api/roadmap/generate/
-    Creates a new roadmap and triggers async generation.
-    Returns immediately with PENDING status.
+    Creates a new roadmap and generates it synchronously.
     """
 
     permission_classes = [permissions.IsAuthenticated]
@@ -24,7 +23,6 @@ class GenerateRoadmapView(APIView):
         target_role = serializer.validated_data.get("target_role", "Software Engineer")
         resume_id = serializer.validated_data.get("resume_id")
 
-        # Get resume if provided
         resume = None
         if resume_id:
             from apps.resume.models import Resume
@@ -36,15 +34,15 @@ class GenerateRoadmapView(APIView):
                     {"error": "Resume not found"}, status=status.HTTP_404_NOT_FOUND
                 )
 
-        # Create roadmap record
         roadmap = Roadmap.objects.create(
             user=request.user, target_role=target_role, resume=resume, status="PENDING"
         )
 
-        # Trigger async task
+        # Run synchronously — no Celery worker needed
         from .tasks import generate_roadmap_task
 
-        generate_roadmap_task.delay(str(roadmap.id))
+        generate_roadmap_task.apply(args=[str(roadmap.id)])
+        roadmap.refresh_from_db()
 
         return Response(RoadmapSerializer(roadmap).data, status=status.HTTP_201_CREATED)
 
@@ -82,7 +80,7 @@ class RoadmapDetailView(APIView):
 class RoadmapStatusView(APIView):
     """
     GET /api/roadmap/{id}/status/
-    Returns just the processing status — used for polling.
+    Returns just the processing status.
     """
 
     permission_classes = [permissions.IsAuthenticated]

@@ -16,7 +16,7 @@ from .serializers import (
 class DocumentUploadView(APIView):
     """
     POST /api/rag/upload/
-    Uploads a PDF and triggers async FAISS indexing.
+    Uploads a PDF and indexes it synchronously.
     """
 
     permission_classes = [permissions.IsAuthenticated]
@@ -26,10 +26,12 @@ class DocumentUploadView(APIView):
         serializer = DocumentUploadSerializer(data=request.data)
         if serializer.is_valid():
             doc = serializer.save(user=request.user, status="PENDING")
-            # Trigger async indexing
+
+            # Run synchronously — no Celery worker needed
             from .tasks import process_document
 
-            process_document.delay(str(doc.id))
+            process_document.apply(args=[str(doc.id)])
+            doc.refresh_from_db()
 
             return Response(
                 DocumentSerializer(doc).data, status=status.HTTP_201_CREATED
@@ -61,13 +63,11 @@ class DocumentDeleteView(APIView):
     def delete(self, request, pk):
         doc = get_object_or_404(KnowledgeDocument, id=pk, user=request.user)
 
-        # Delete FAISS index directory
         if doc.faiss_index_path and os.path.exists(doc.faiss_index_path):
             import shutil
 
             shutil.rmtree(doc.faiss_index_path, ignore_errors=True)
 
-        # Delete file
         if doc.file and os.path.isfile(doc.file.path):
             os.remove(doc.file.path)
 
