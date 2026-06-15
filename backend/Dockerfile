@@ -25,7 +25,7 @@ RUN pip install -r requirements.txt
 # Copy project code into container
 COPY . .
 
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput && python manage.py migrate
 
 # Expose port 8000
 EXPOSE 8000
