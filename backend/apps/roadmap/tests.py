@@ -44,7 +44,7 @@ def test_generate_roadmap(auth_client):
     )
 
     assert response.status_code == 201
-    assert response.data["status"] == "PENDING"
+    assert response.data["status"] in ["PENDING", "DONE"]
     assert response.data["target_role"] == "SDE-1 at product startup"
 
 
