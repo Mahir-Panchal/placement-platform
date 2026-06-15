@@ -25,6 +25,8 @@ RUN pip install -r requirements.txt
 # Copy project code into container
 COPY . .
 
+RUN python manage.py collectstatic --noinput
+
 # Expose port 8000
 EXPOSE 8000
 
