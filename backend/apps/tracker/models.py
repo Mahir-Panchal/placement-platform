@@ -7,30 +7,32 @@ User = get_user_model()
 
 class JobApplication(models.Model):
     STATUS_CHOICES = [
-        ('applied', 'Applied'),
-        ('oa', 'Online Assessment'),
-        ('interview_1', 'Interview Round 1'),
-        ('interview_2', 'Interview Round 2'),
-        ('offer', 'Offer Received'),
-        ('rejected', 'Rejected'),
+        ("applied", "Applied"),
+        ("oa", "Online Assessment"),
+        ("interview_1", "Interview Round 1"),
+        ("interview_2", "Interview Round 2"),
+        ("offer", "Offer Received"),
+        ("rejected", "Rejected"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="applications"
+    )
     company_name = models.CharField(max_length=200)
     role = models.CharField(max_length=200)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='applied')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="applied")
     applied_date = models.DateField()
-    notes = models.TextField(blank=True, default='')
+    notes = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-applied_date']
+        ordering = ["-applied_date"]
         indexes = [
-            models.Index(fields=['user', 'status']),
-            models.Index(fields=['user', 'applied_date']),
-            models.Index(fields=['user', '-updated_at']),
+            models.Index(fields=["user", "status"]),
+            models.Index(fields=["user", "applied_date"]),
+            models.Index(fields=["user", "-updated_at"]),
         ]
 
     def __str__(self):

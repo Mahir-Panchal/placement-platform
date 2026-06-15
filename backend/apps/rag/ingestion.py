@@ -33,13 +33,13 @@ def ingest_document(file_path: str, doc_id: str) -> dict:
         embeddings = get_embeddings()
         db = FAISS.from_documents(chunks, embeddings)
 
-        index_dir = os.path.join('media', 'faiss_indexes', str(doc_id))
+        index_dir = os.path.join("media", "faiss_indexes", str(doc_id))
         os.makedirs(index_dir, exist_ok=True)
         db.save_local(index_dir)
 
         return {
-            'chunk_count': len(chunks),
-            'index_path': index_dir,
+            "chunk_count": len(chunks),
+            "index_path": index_dir,
         }
 
     except Exception as e:
@@ -50,7 +50,5 @@ def ingest_document(file_path: str, doc_id: str) -> dict:
 def load_index(index_path: str):
     embeddings = get_embeddings()
     return FAISS.load_local(
-        index_path,
-        embeddings,
-        allow_dangerous_deserialization=True
+        index_path, embeddings, allow_dangerous_deserialization=True
     )

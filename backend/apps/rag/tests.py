@@ -15,21 +15,20 @@ def client():
 @pytest.fixture
 def user(db):
     return User.objects.create_user(
-        email='rag@test.com',
-        password='Test@1234',
-        full_name='RAG Tester'
+        email="rag@test.com", password="Test@1234", full_name="RAG Tester"
     )
 
 
 @pytest.fixture
 def auth_client(user):
     client = APIClient()
-    response = client.post(reverse('login'), {
-        'email': 'rag@test.com',
-        'password': 'Test@1234'
-    }, format='json')
-    token = response.data['access']
-    client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+    response = client.post(
+        reverse("login"),
+        {"email": "rag@test.com", "password": "Test@1234"},
+        format="json",
+    )
+    token = response.data["access"]
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     return client, user
 
 
@@ -56,36 +55,35 @@ startxref
 441
 %%EOF"""
     return SimpleUploadedFile(
-        "test_doc.pdf",
-        pdf_content,
-        content_type="application/pdf"
+        "test_doc.pdf", pdf_content, content_type="application/pdf"
     )
 
 
 # ── Test 1: Upload Document ───────────────────────────────────────────────
 
+
 @pytest.mark.django_db
 def test_upload_document(auth_client, sample_pdf):
     """Authenticated user can upload a document."""
     client, user = auth_client
-    url = reverse('rag_upload')
-    response = client.post(url, {
-        'title': 'Test Document',
-        'file': sample_pdf
-    }, format='multipart')
+    url = reverse("rag_upload")
+    response = client.post(
+        url, {"title": "Test Document", "file": sample_pdf}, format="multipart"
+    )
 
     assert response.status_code == 201
-    assert response.data['title'] == 'Test Document'
-    assert response.data['status'] == 'PENDING'
+    assert response.data["title"] == "Test Document"
+    assert response.data["status"] == "PENDING"
 
 
 # ── Test 2: List Documents ────────────────────────────────────────────────
+
 
 @pytest.mark.django_db
 def test_list_documents(auth_client):
     """User can list their documents."""
     client, user = auth_client
-    url = reverse('rag_documents')
+    url = reverse("rag_documents")
     response = client.get(url)
 
     assert response.status_code == 200
@@ -94,19 +92,20 @@ def test_list_documents(auth_client):
 
 # ── Test 3: Upload Requires Auth ──────────────────────────────────────────
 
+
 @pytest.mark.django_db
 def test_upload_requires_auth(client, sample_pdf):
     """Unauthenticated upload returns 401."""
-    url = reverse('rag_upload')
-    response = client.post(url, {
-        'title': 'Test',
-        'file': sample_pdf
-    }, format='multipart')
+    url = reverse("rag_upload")
+    response = client.post(
+        url, {"title": "Test", "file": sample_pdf}, format="multipart"
+    )
 
     assert response.status_code == 401
 
 
 # ── Test 4: Query Non-Ready Document ─────────────────────────────────────
+
 
 @pytest.mark.django_db
 def test_query_non_ready_document(auth_client):
@@ -115,16 +114,15 @@ def test_query_non_ready_document(auth_client):
 
     # Directly create a PENDING document without triggering Celery
     from apps.rag.models import KnowledgeDocument
+
     doc = KnowledgeDocument.objects.create(
-        user=user,
-        title='Test Doc',
-        file='knowledge/test.pdf',
-        status='PENDING'
+        user=user, title="Test Doc", file="knowledge/test.pdf", status="PENDING"
     )
 
-    response = client.post(reverse('rag_query'), {
-        'document_id': str(doc.id),
-        'question': 'What is this about?'
-    }, format='json')
+    response = client.post(
+        reverse("rag_query"),
+        {"document_id": str(doc.id), "question": "What is this about?"},
+        format="json",
+    )
 
     assert response.status_code == 400

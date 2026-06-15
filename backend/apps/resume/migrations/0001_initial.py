@@ -16,23 +16,50 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Resume',
+            name="Resume",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('file', models.FileField(upload_to='resumes/%Y/%m/')),
-                ('original_filename', models.CharField(max_length=255)),
-                ('raw_text', models.TextField(blank=True, default='')),
-                ('ats_score', models.IntegerField(default=0)),
-                ('skills', models.JSONField(default=list)),
-                ('ai_suggestions', models.JSONField(default=dict)),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('PROCESSING', 'Processing'), ('DONE', 'Done'), ('FAILED', 'Failed')], default='PENDING', max_length=20)),
-                ('is_active', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='resumes', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("file", models.FileField(upload_to="resumes/%Y/%m/")),
+                ("original_filename", models.CharField(max_length=255)),
+                ("raw_text", models.TextField(blank=True, default="")),
+                ("ats_score", models.IntegerField(default=0)),
+                ("skills", models.JSONField(default=list)),
+                ("ai_suggestions", models.JSONField(default=dict)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("PROCESSING", "Processing"),
+                            ("DONE", "Done"),
+                            ("FAILED", "Failed"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="resumes",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
     ]

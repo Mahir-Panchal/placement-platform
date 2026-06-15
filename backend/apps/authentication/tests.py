@@ -8,6 +8,7 @@ User = get_user_model()
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def client():
     """A plain API client with no authentication."""
@@ -17,12 +18,14 @@ def client():
 @pytest.fixture
 def create_user():
     """Factory fixture — call it to create a test user."""
-    def _create_user(email='user@test.com', password='Test@1234', full_name='Test User'):
+
+    def _create_user(
+        email="user@test.com", password="Test@1234", full_name="Test User"
+    ):
         return User.objects.create_user(
-            email=email,
-            password=password,
-            full_name=full_name
+            email=email, password=password, full_name=full_name
         )
+
     return _create_user
 
 
@@ -32,90 +35,95 @@ def auth_client(create_user):
     user = create_user()
     client = APIClient()
     # Get tokens by hitting the login endpoint
-    response = client.post(reverse('login'), {
-        'email': 'user@test.com',
-        'password': 'Test@1234'
-    }, format='json')
-    token = response.data['access']
-    client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+    response = client.post(
+        reverse("login"),
+        {"email": "user@test.com", "password": "Test@1234"},
+        format="json",
+    )
+    token = response.data["access"]
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     return client, user
 
 
 # ── Test 1: Successful Registration ─────────────────────────────────────────
 
+
 @pytest.mark.django_db
 def test_register_success(client):
     """A new user can register with valid data."""
-    url = reverse('register')
+    url = reverse("register")
     data = {
-        'email': 'newuser@test.com',
-        'password': 'Test@1234',
-        'full_name': 'New User'
+        "email": "newuser@test.com",
+        "password": "Test@1234",
+        "full_name": "New User",
     }
-    response = client.post(url, data, format='json')
+    response = client.post(url, data, format="json")
 
     assert response.status_code == 201
-    assert response.data['user']['email'] == 'newuser@test.com'
-    assert 'access' in response.data['tokens']
-    assert 'refresh' in response.data['tokens']
+    assert response.data["user"]["email"] == "newuser@test.com"
+    assert "access" in response.data["tokens"]
+    assert "refresh" in response.data["tokens"]
     # Make sure password is not returned
-    assert 'password' not in response.data['user']
+    assert "password" not in response.data["user"]
 
 
 # ── Test 2: Duplicate Email Registration ────────────────────────────────────
 
+
 @pytest.mark.django_db
 def test_register_duplicate_email(client, create_user):
     """Registering with an already used email should fail."""
-    create_user(email='existing@test.com')
+    create_user(email="existing@test.com")
 
-    url = reverse('register')
+    url = reverse("register")
     data = {
-        'email': 'existing@test.com',
-        'password': 'Test@1234',
-        'full_name': 'Another User'
+        "email": "existing@test.com",
+        "password": "Test@1234",
+        "full_name": "Another User",
     }
-    response = client.post(url, data, format='json')
+    response = client.post(url, data, format="json")
 
     assert response.status_code == 400
 
 
 # ── Test 3: Login with Wrong Password ───────────────────────────────────────
 
+
 @pytest.mark.django_db
 def test_login_wrong_password(client, create_user):
     """Login with wrong password should return 401."""
-    create_user(email='user@test.com', password='Test@1234')
+    create_user(email="user@test.com", password="Test@1234")
 
-    url = reverse('login')
-    response = client.post(url, {
-        'email': 'user@test.com',
-        'password': 'WrongPassword!'
-    }, format='json')
+    url = reverse("login")
+    response = client.post(
+        url, {"email": "user@test.com", "password": "WrongPassword!"}, format="json"
+    )
 
     assert response.status_code == 401
 
 
 # ── Test 4: Get Profile When Authenticated ───────────────────────────────────
 
+
 @pytest.mark.django_db
 def test_get_profile_authenticated(auth_client):
     """Authenticated user can fetch their own profile."""
     client, user = auth_client
-    url = reverse('profile')
+    url = reverse("profile")
     response = client.get(url)
 
     assert response.status_code == 200
-    assert response.data['email'] == user.email
-    assert response.data['full_name'] == user.full_name
+    assert response.data["email"] == user.email
+    assert response.data["full_name"] == user.full_name
 
 
 # ── Test 5: Get Profile Without Token ───────────────────────────────────────
 
+
 @pytest.mark.django_db
 def test_get_profile_unauthenticated(client):
     """Unauthenticated request to profile should return 401."""
-    url = reverse('profile')
+    url = reverse("profile")
     response = client.get(url)
 
     assert response.status_code == 401
@@ -123,69 +131,76 @@ def test_get_profile_unauthenticated(client):
 
 # ── Test 6: Health Check ─────────────────────────────────────────────────────
 
+
 @pytest.mark.django_db
 def test_health_check(client):
     """Health check endpoint should return status ok."""
-    url = reverse('health')
+    url = reverse("health")
     response = client.get(url)
 
     assert response.status_code == 200
-    assert response.data['status'] == 'ok'
+    assert response.data["status"] == "ok"
+
 
 # ── Test 7: Password Change Success ─────────────────────────────────────────
+
 
 @pytest.mark.django_db
 def test_password_change_success(auth_client):
     """Authenticated user can change password with correct old password."""
     client, user = auth_client
-    url = reverse('password_change')
-    response = client.post(url, {
-        'old_password': 'Test@1234',
-        'new_password': 'NewPass@5678'
-    }, format='json')
+    url = reverse("password_change")
+    response = client.post(
+        url,
+        {"old_password": "Test@1234", "new_password": "NewPass@5678"},
+        format="json",
+    )
 
     assert response.status_code == 200
-    assert response.data['message'] == 'Password changed successfully'
+    assert response.data["message"] == "Password changed successfully"
 
     # Verify new password actually works
     user.refresh_from_db()
-    assert user.check_password('NewPass@5678')
+    assert user.check_password("NewPass@5678")
 
 
 # ── Test 8: Password Change Wrong Old Password ───────────────────────────────
+
 
 @pytest.mark.django_db
 def test_password_change_wrong_old_password(auth_client):
     """Password change should fail if old password is incorrect."""
     client, user = auth_client
-    url = reverse('password_change')
-    response = client.post(url, {
-        'old_password': 'WrongPassword!',
-        'new_password': 'NewPass@5678'
-    }, format='json')
+    url = reverse("password_change")
+    response = client.post(
+        url,
+        {"old_password": "WrongPassword!", "new_password": "NewPass@5678"},
+        format="json",
+    )
 
     assert response.status_code == 400
 
 
 # ── Test 9: Password Change Same Password ────────────────────────────────────
 
+
 @pytest.mark.django_db
 def test_password_change_same_password(auth_client):
     """Password change should fail if new password is same as old."""
     client, user = auth_client
-    url = reverse('password_change')
-    response = client.post(url, {
-        'old_password': 'Test@1234',
-        'new_password': 'Test@1234'
-    }, format='json')
+    url = reverse("password_change")
+    response = client.post(
+        url, {"old_password": "Test@1234", "new_password": "Test@1234"}, format="json"
+    )
 
     assert response.status_code == 400
 
 
 # ── Test 10: Role Default Is Student ─────────────────────────────────────────
 
+
 @pytest.mark.django_db
 def test_new_user_default_role_is_student(create_user):
     """Newly created users should have STUDENT role by default."""
     user = create_user()
-    assert user.role == 'STUDENT'
+    assert user.role == "STUDENT"

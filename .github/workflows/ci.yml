@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER:     postgres
+          POSTGRES_PASSWORD: postgres123
+          POSTGRES_DB:       placement_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DJANGO_SETTINGS_MODULE: core.settings.dev
+      SECRET_KEY:             test-secret-key-for-ci-only
+      DB_HOST:                localhost
+      DB_PORT:                5432
+      DB_PASSWORD:            postgres123
+      GROQ_API_KEY:           ${{ secrets.GROQ_API_KEY }}
+      REDIS_URL:              redis://localhost:6379/0
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Install linting tools
+        run: pip install flake8 black
+
+      - name: Run Black format check
+        working-directory: backend
+        run: black --check --diff .
+
+      - name: Run Flake8 linting
+        working-directory: backend
+        run: flake8 . --max-line-length=120 --exclude=venv,migrations,staticfiles
+
+      - name: Run migrations
+        working-directory: backend
+        run: python manage.py migrate
+
+      - name: Run Django system check
+        working-directory: backend
+        run: python manage.py check
+
+      - name: Run tests with coverage
+        working-directory: backend
+        run: pytest --cov=apps --cov-report=xml --cov-fail-under=70 -v
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/coverage.xml

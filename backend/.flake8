@@ -1,0 +1,13 @@
+[flake8]
+max-line-length = 120
+exclude =
+    venv,
+    migrations,
+    staticfiles
+per-file-ignores =
+    core/settings/*.py: F403, F405
+    apps/*/admin.py: F401
+    apps/notifications/models.py: F401
+    apps/notifications/views.py: F401
+    apps/notifications/tests.py: F401
+    apps/rag/chain.py: F401

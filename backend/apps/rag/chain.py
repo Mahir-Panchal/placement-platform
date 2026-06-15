@@ -14,26 +14,31 @@ def build_qa_chain(index_path: str):
 
     # Load FAISS index
     db = load_index(index_path)
-    retriever = db.as_retriever(search_kwargs={'k': 4})
+    retriever = db.as_retriever(search_kwargs={"k": 4})
 
     # LLM
     llm = ChatGroq(
         model="llama-3.1-8b-instant",
         temperature=0,
-        groq_api_key=os.getenv('GROQ_API_KEY'),
+        groq_api_key=os.getenv("GROQ_API_KEY"),
     )
 
     # Prompt
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", """You are a helpful assistant that answers questions based on the provided context.
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                """You are a helpful assistant that answers questions based on the provided context.
 Answer the question using ONLY the information from the context below.
 If the answer is not in the context, say "I couldn't find that information in the document."
 Be concise and clear.
 
 Context:
-{context}"""),
-        ("human", "{input}"),
-    ])
+{context}""",
+            ),
+            ("human", "{input}"),
+        ]
+    )
 
     # Build chain
     document_chain = create_stuff_documents_chain(llm, prompt)

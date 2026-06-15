@@ -6,20 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('tracker', '0001_initial'),
+        ("tracker", "0001_initial"),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name='jobapplication',
-            index=models.Index(fields=['user', 'status'], name='tracker_job_user_id_890174_idx'),
+            model_name="jobapplication",
+            index=models.Index(
+                fields=["user", "status"], name="tracker_job_user_id_890174_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='jobapplication',
-            index=models.Index(fields=['user', 'applied_date'], name='tracker_job_user_id_0cb690_idx'),
+            model_name="jobapplication",
+            index=models.Index(
+                fields=["user", "applied_date"], name="tracker_job_user_id_0cb690_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='jobapplication',
-            index=models.Index(fields=['user', '-updated_at'], name='tracker_job_user_id_01e26e_idx'),
+            model_name="jobapplication",
+            index=models.Index(
+                fields=["user", "-updated_at"], name="tracker_job_user_id_01e26e_idx"
+            ),
         ),
     ]

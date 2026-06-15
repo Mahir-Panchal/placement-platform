@@ -16,20 +16,49 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='JobApplication',
+            name="JobApplication",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('company_name', models.CharField(max_length=200)),
-                ('role', models.CharField(max_length=200)),
-                ('status', models.CharField(choices=[('applied', 'Applied'), ('oa', 'Online Assessment'), ('interview_1', 'Interview Round 1'), ('interview_2', 'Interview Round 2'), ('offer', 'Offer Received'), ('rejected', 'Rejected')], default='applied', max_length=20)),
-                ('applied_date', models.DateField()),
-                ('notes', models.TextField(blank=True, default='')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("company_name", models.CharField(max_length=200)),
+                ("role", models.CharField(max_length=200)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("applied", "Applied"),
+                            ("oa", "Online Assessment"),
+                            ("interview_1", "Interview Round 1"),
+                            ("interview_2", "Interview Round 2"),
+                            ("offer", "Offer Received"),
+                            ("rejected", "Rejected"),
+                        ],
+                        default="applied",
+                        max_length=20,
+                    ),
+                ),
+                ("applied_date", models.DateField()),
+                ("notes", models.TextField(blank=True, default="")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="applications",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-applied_date'],
+                "ordering": ["-applied_date"],
             },
         ),
     ]

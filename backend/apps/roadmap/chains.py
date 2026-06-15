@@ -5,10 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 
 def generate_roadmap(
-    target_role: str,
-    skills: list,
-    ats_score: int,
-    full_name: str = "Student"
+    target_role: str, skills: list, ats_score: int, full_name: str = "Student"
 ) -> dict:
     """
     Generates a personalised 8-week preparation roadmap using LLM.
@@ -18,11 +15,14 @@ def generate_roadmap(
         llm = ChatGroq(
             model="llama-3.1-8b-instant",
             temperature=0.7,
-            groq_api_key=os.getenv('GROQ_API_KEY'),
+            groq_api_key=os.getenv("GROQ_API_KEY"),
         )
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are an expert placement coach for engineering students in India.
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """You are an expert placement coach for engineering students in India.
 Generate a detailed 8-week preparation roadmap for the target role.
 Return ONLY a valid JSON object with this exact structure:
 {{
@@ -42,23 +42,30 @@ Return ONLY a valid JSON object with this exact structure:
     "key_topics": ["topic1", "topic2", "topic3"],
     "interview_tips": ["tip1", "tip2", "tip3"]
 }}
-Generate exactly 8 weeks. Return ONLY the JSON, no markdown, no explanation."""),
-            ("human", """Student: {full_name}
+Generate exactly 8 weeks. Return ONLY the JSON, no markdown, no explanation.""",
+                ),
+                (
+                    "human",
+                    """Student: {full_name}
 Target Role: {target_role}
 Current Skills: {skills}
 ATS Score: {ats_score}/100
 
-Generate an 8-week preparation roadmap tailored to this student's profile.""")
-        ])
+Generate an 8-week preparation roadmap tailored to this student's profile.""",
+                ),
+            ]
+        )
 
         chain = prompt | llm
 
-        response = chain.invoke({
-            "full_name": full_name,
-            "target_role": target_role,
-            "skills": ", ".join(skills) if skills else "Python, Data Structures",
-            "ats_score": ats_score,
-        })
+        response = chain.invoke(
+            {
+                "full_name": full_name,
+                "target_role": target_role,
+                "skills": ", ".join(skills) if skills else "Python, Data Structures",
+                "ats_score": ats_score,
+            }
+        )
 
         content = response.content.strip()
 

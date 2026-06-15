@@ -26,12 +26,12 @@ def calculate_ats_score(text: str, skills: List[str]) -> int:
 
     # ── 2. Contact Info (20 points) ──────────────────────────────────────
     # Email present (10 points)
-    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    email_pattern = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
     if re.search(email_pattern, text):
         score += 10
 
     # Phone present (10 points)
-    phone_pattern = r'(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
+    phone_pattern = r"(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}"
     if re.search(phone_pattern, text):
         score += 10
 
@@ -50,8 +50,14 @@ def calculate_ats_score(text: str, skills: List[str]) -> int:
     # ── 4. Section Headers (20 points) ───────────────────────────────────
     # Check for standard resume sections
     sections = [
-        'experience', 'education', 'skills', 'projects',
-        'summary', 'objective', 'achievements', 'certifications'
+        "experience",
+        "education",
+        "skills",
+        "projects",
+        "summary",
+        "objective",
+        "achievements",
+        "certifications",
     ]
     sections_found = sum(1 for section in sections if section in text_lower)
     section_score = min(20, sections_found * 5)
@@ -63,10 +69,10 @@ def calculate_ats_score(text: str, skills: List[str]) -> int:
 def get_ats_grade(score: int) -> str:
     """Returns a letter grade for the ATS score."""
     if score >= 80:
-        return 'A'
+        return "A"
     elif score >= 65:
-        return 'B'
+        return "B"
     elif score >= 50:
-        return 'C'
+        return "C"
     else:
-        return 'D'
+        return "D"
