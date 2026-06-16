@@ -30,7 +30,11 @@ class DocumentUploadView(APIView):
             # Run synchronously — no Celery worker needed
             from .tasks import process_document
 
-            process_document.apply(args=[str(doc.id)])
+            try:
+                process_document.apply(args=[str(doc.id)])
+            except Exception:
+                pass
+
             doc.refresh_from_db()
 
             return Response(

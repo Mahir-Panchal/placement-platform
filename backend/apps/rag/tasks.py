@@ -4,10 +4,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=2, default_retry_delay=30)
+@shared_task(bind=True, max_retries=0)
 def process_document(self, doc_id: str):
     """
-    Celery task that ingests a PDF into FAISS asynchronously.
+    Processes a PDF into FAISS index synchronously.
+    max_retries=0 — no retries on free tier, fail fast and show FAILED status.
     """
     from .models import KnowledgeDocument
 
@@ -34,4 +35,5 @@ def process_document(self, doc_id: str):
         if doc:
             doc.status = "FAILED"
             doc.save(update_fields=["status"])
-        raise self.retry(exc=exc, countdown=30)
+        # Don't retry — just return so status stays FAILED
+        return {"error": str(exc)}
