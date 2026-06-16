@@ -1,11 +1,29 @@
 # AI Placement Intelligence Platform
 
 ![CI](https://github.com/Mahir-Panchal/placement-platform/actions/workflows/ci.yml/badge.svg)
+
 ## Live Demo
-- **Frontend:** https://placement-platform-nine.vercel.app
-- **API:** https://placement-backend-cq8i.onrender.com/api/health/
+- **Frontend:** [placement-platform-nine.vercel.app](https://placement-platform-nine.vercel.app)
+- **API Health Check:** [backend health endpoint](https://placement-backend-cq8i.onrender.com/api/health/)
 
 An AI-powered full-stack web platform to help engineering students ace campus placements.
+
+## Highlights
+
+- ✅ Full-stack AI-powered placement platform
+- ✅ Resume ATS analysis with LLM feedback
+- ✅ RAG knowledge base using LangChain + FAISS
+- ✅ JWT Authentication + Google OAuth
+- ✅ Celery background jobs and email notifications
+- ✅ Dockerized development environment
+- ✅ GitHub Actions CI/CD pipeline
+- ✅ 38 automated tests with 82% coverage
+
+## Motivation
+
+Engineering students often manage resumes, placement preparation resources, company applications, and progress tracking across multiple disconnected tools.
+
+The AI Placement Intelligence Platform centralizes the entire placement journey into a single AI-assisted dashboard, helping students improve resumes, prepare for interviews, organize study materials, and track applications efficiently.
 
 ## Features
 
@@ -16,6 +34,41 @@ An AI-powered full-stack web platform to help engineering students ace campus pl
 - 📊 **Analytics Dashboard** — Charts and stats across your entire placement journey
 - 🔔 **Smart Notifications** — Weekly email summaries and stale application reminders
 - ⚙️ **Settings** — Profile management, password change, notification preferences
+
+## Screenshots
+
+<p align="center">
+  <img src="./screenshots/dashboard.png" alt="Dashboard" width="48%">
+  <img src="./screenshots/resume-analysis.png" alt="Resume Analysis" width="48%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/roadmap.png" alt="Career Roadmap" width="48%">
+  <img src="./screenshots/application-tracker.png" alt="Application Tracker" width="48%">
+</p>
+
+### Dashboard
+Real-time analytics, application statistics, and placement progress tracking.
+
+### Resume Intelligence
+ATS scoring and AI-powered resume improvement suggestions.
+
+### Career Roadmap
+Personalized week-by-week preparation plans for target roles.
+
+### RAG Knowledge Base
+Semantic search and question answering over uploaded placement resources.
+
+### Application Tracker
+Track job applications through a complete status pipeline with analytics.
+
+## Known Limitations
+
+The RAG Knowledge Base feature is fully functional in local development.
+
+Due to Render free-tier storage and startup limitations, the embedding model and FAISS index are not persisted across deployments. As a result, the Knowledge Base feature may be unavailable or require reinitialization on the hosted demo.
+
+To experience the complete RAG workflow, run the project locally using the setup instructions provided further.
 
 ## Tech Stack
 
