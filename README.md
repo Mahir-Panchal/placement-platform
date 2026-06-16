@@ -1,6 +1,9 @@
 # AI Placement Intelligence Platform
 
 ![CI](https://github.com/Mahir-Panchal/placement-platform/actions/workflows/ci.yml/badge.svg)
+## Live Demo
+- **Frontend:** https://placement-platform-nine.vercel.app
+- **API:** https://placement-backend-cq8i.onrender.com/api/health/
 
 An AI-powered full-stack web platform to help engineering students ace campus placements.
 
